@@ -6,5 +6,6 @@ public record OfferReturn(Long id,
                           SpecialistReturn specialist,
                           OrderReturn order,
                           OfferStatus offerStatus,
-                          Long  proposedPrice) {
+                          Long  proposedPrice,
+                          Integer takeLong) {
 }

@@ -36,7 +36,7 @@ public class SpecialistController {
 
     @PostMapping("register_specialist")
     public ResponseEntity<SpecialistReturn> registerSpecialist(@Valid @RequestBody SpecialistSaveRequest specialistSaveRequest) {
-        byte[] image = takeAndCheckImage.specialistImage(specialistSaveRequest.image());
+        byte[] image = takeAndCheckImage.specialistImage(specialistSaveRequest.imagePath());
         Specialist mappedSpecialist = SpecialistMapper.INSTANCE.specialistSaveRequestToModel(specialistSaveRequest);
         mappedSpecialist.setImage(image);
         Specialist savedSpecialist = specialistService.saveSpecialist(mappedSpecialist);

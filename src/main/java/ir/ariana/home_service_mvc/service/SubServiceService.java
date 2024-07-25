@@ -35,9 +35,9 @@ public class SubServiceService {
                 new NotFoundException("subService with id " + id + " not founded"));
     }
 
-    public SubService updateSubServicePrice(Long price, Long id) {
+    public SubService updateSubServicePrice(Long basePrice, Long id) {
         SubService subService = findById(id);
-        subService.setBasePrice(price);
+        subService.setBasePrice(basePrice);
         return subServiceRepository.save(subService);
     }
 

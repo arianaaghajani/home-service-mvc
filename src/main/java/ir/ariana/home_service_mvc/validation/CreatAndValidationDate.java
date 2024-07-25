@@ -16,8 +16,8 @@ public class CreatAndValidationDate {
 
     public boolean isValidStringInputDate(String input) {
         try {
-            DateTimeFormatter dtf = DateTimeFormat.forPattern("yyyy-MM-dd");
-            dtf.parseDateTime(input);
+            DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd");
+            dateTimeFormatter.parseDateTime(input);
             return true;
         } catch (IllegalArgumentException iae) {
             return false;

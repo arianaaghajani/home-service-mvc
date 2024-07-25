@@ -1,5 +1,6 @@
 package ir.ariana.home_service_mvc.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -18,7 +19,6 @@ public class Address {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
-    LocalDateTime registrationTime= LocalDateTime.now();
     @NonNull
     String province;
     @NonNull
@@ -29,6 +29,7 @@ public class Address {
     String postalCard;
     String houseNumber;
     String moreDescription;
+
     @ManyToOne(fetch = FetchType.EAGER)
     Customer customer;
 

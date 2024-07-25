@@ -4,5 +4,5 @@ public record SpecialistSaveRequest(String firstName,
                                     String lastName,
                                     String email,
                                     String password,
-                                    String image) {
+                                    String imagePath) {
 }

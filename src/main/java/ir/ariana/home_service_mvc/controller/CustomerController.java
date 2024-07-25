@@ -82,13 +82,15 @@ public class CustomerController {
         Date creatDate = creatAndValidationDate.currentTime().toDate();
         Date needSpecialist = creatAndValidationDate.insertDate(orderSaveRequest.needSpecialistDate()).toDate();
         Order mappedOrder = OrderMapper.INSTANCE.orderSaveRequestToModel(orderSaveRequest);
-        mappedOrder.setDateCreatOrder(creatDate);
+        mappedOrder.setOrderRegisterDate(creatDate);
         mappedOrder.setNeedSpecialist(needSpecialist);
         SubService subService = subServiceService.findById(orderSaveRequest.subService().getId());
         Order savedOrder = orderService.saveOrder(mappedOrder, subService);
         return new ResponseEntity<>(OrderMapper.INSTANCE.modelOrderToSaveResponse(savedOrder),
                 HttpStatus.CREATED);
     }
+
+
 
     @GetMapping("allOrders_OfCustomer")
     public List<OrderReturn> allOrdersOfCustomer(@RequestParam Long id) {
