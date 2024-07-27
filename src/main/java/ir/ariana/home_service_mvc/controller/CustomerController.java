@@ -18,7 +18,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -79,17 +78,11 @@ public class CustomerController {
 
     @PostMapping("make_Order")
     public ResponseEntity<OrderReturn> makeOrder(@Valid @RequestBody OrderSaveRequest orderSaveRequest) {
-        Date creatDate = creatAndValidationDate.currentTime().toDate();
-        Date needSpecialist = creatAndValidationDate.insertDate(orderSaveRequest.needSpecialistDate()).toDate();
         Order mappedOrder = OrderMapper.INSTANCE.orderSaveRequestToModel(orderSaveRequest);
-        mappedOrder.setOrderRegisterDate(creatDate);
-        mappedOrder.setNeedSpecialist(needSpecialist);
-        SubService subService = subServiceService.findById(orderSaveRequest.subService().getId());
-        Order savedOrder = orderService.saveOrder(mappedOrder, subService);
-        return new ResponseEntity<>(OrderMapper.INSTANCE.modelOrderToSaveResponse(savedOrder),
-                HttpStatus.CREATED);
+        Order savedOrder = orderService.addOrderByCustomer(mappedOrder, orderSaveRequest.subServiceId(),
+                orderSaveRequest.customerId());
+        return new ResponseEntity<>(OrderMapper.INSTANCE.modelOrderToSaveResponse(savedOrder), HttpStatus.CREATED);
     }
-
 
 
     @GetMapping("allOrders_OfCustomer")
