@@ -9,7 +9,6 @@ import ir.ariana.home_service_mvc.mapper.OfferMapper;
 import ir.ariana.home_service_mvc.mapper.OrderMapper;
 import ir.ariana.home_service_mvc.model.*;
 import ir.ariana.home_service_mvc.service.*;
-import ir.ariana.home_service_mvc.validation.CreatAndValidationDate;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -29,7 +28,6 @@ public class CustomerController {
     private final SubServiceService subServiceService;
     private final OfferService offerService;
     private final CommentService commentsService;
-    private final CreatAndValidationDate creatAndValidationDate;
     private final CommentService commentService;
 
 
@@ -136,11 +134,12 @@ public class CustomerController {
         Order acceptedOrder = orderService.updateOrderStatus(OrderStatus.WAITING_FOR_SPECIALIST_SELECTION, order);
         return OrderMapper.INSTANCE.modelOrderToSaveResponse(acceptedOrder);
     }
-    @GetMapping("make_Order_OnGoing")
-    public OrderReturn makeOrderOnGoing(@RequestParam Long id) {
+
+    @PatchMapping("make_Order_ToCome")
+    public OrderReturn makeOrderToCome(@RequestParam Long id) {
         Order order = orderService.findById(id);
-        Order onGoingOrder = orderService.makeOrderOngoing(order);
-        return OrderMapper.INSTANCE.modelOrderToSaveResponse(onGoingOrder);
+        Order orderToCome = orderService.makeOrderToCome(order);
+        return OrderMapper.INSTANCE.modelOrderToSaveResponse(orderToCome);
     }
 
     @GetMapping("make_Order_Done")
@@ -158,4 +157,19 @@ public class CustomerController {
         return new ResponseEntity<>(CommentMapper.INSTANCE.modelCommentToSaveResponse(savedComment),
                 HttpStatus.CREATED);
     }
+
+    @GetMapping("/show-my-credit")
+    public Long showCustomerCredit(@RequestParam Long id) {
+        Customer customer = customerService.findById(id);
+        return customer.getCredit();
+    }
+
+    @PatchMapping("add_credit")
+    public ResponseEntity<CustomerReturn> addCredit(@RequestParam Long id, Long credit) {
+        Customer customer = customerService.findById(id);
+        Customer updatedCustomer = customerService.addCredit(customer,credit);
+        return new ResponseEntity<>(CustomerMapper.INSTANCE.modelCustomerToSaveResponse(updatedCustomer),
+                HttpStatus.OK);
+    }
+
 }
