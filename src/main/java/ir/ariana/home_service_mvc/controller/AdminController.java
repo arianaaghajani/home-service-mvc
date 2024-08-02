@@ -135,4 +135,15 @@ public class AdminController {
         subServiceService.removeSubService(id);
         return "subService and All relations have been deleted";
     }
+
+    @PatchMapping("block_Specialist")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<SpecialistReturn> blockExpert(@RequestParam Long id) {
+        Specialist specialist = specialistService.findById(id);
+        specialist.setScore(-1);
+        specialistService.save(specialist);
+        specialistService.blockSpecialist(specialist);
+        return new ResponseEntity<>(SpecialistMapper.INSTANCE.modelSpecialistToSaveResponse(specialist),
+                HttpStatus.FOUND);
+    }
 }
