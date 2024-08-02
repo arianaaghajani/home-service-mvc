@@ -13,6 +13,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -164,12 +165,22 @@ public class CustomerController {
         return customer.getCredit();
     }
 
-    @PatchMapping("add_credit")
+    @GetMapping("add_credit")
     public ResponseEntity<CustomerReturn> addCredit(@RequestParam Long id, Long credit) {
         Customer customer = customerService.findById(id);
         Customer updatedCustomer = customerService.addCredit(customer,credit);
         return new ResponseEntity<>(CustomerMapper.INSTANCE.modelCustomerToSaveResponse(updatedCustomer),
                 HttpStatus.OK);
     }
+
+    @PatchMapping("payBy_credit")
+    @PreAuthorize("hasRole('ROLE_CUSTOMER')")
+    public ResponseEntity<CustomerReturn> payByCredit(@RequestParam Long id) {
+        Order order = orderService.findById(id);
+        Customer customer = customerService.payOrderPriceFromCredit(order);
+        return new ResponseEntity<>(CustomerMapper.INSTANCE.modelCustomerToSaveResponse(customer),
+                HttpStatus.OK);
+    }
+
 
 }
