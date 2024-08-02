@@ -1,17 +1,22 @@
 package ir.ariana.home_service_mvc.controller;
 
+import com.google.common.base.Joiner;
 import ir.ariana.home_service_mvc.dto.*;
 import ir.ariana.home_service_mvc.enums.SpecialistStatus;
+import ir.ariana.home_service_mvc.mapper.CustomerMapper;
 import ir.ariana.home_service_mvc.mapper.MainServiceMapper;
 import ir.ariana.home_service_mvc.mapper.SpecialistMapper;
 import ir.ariana.home_service_mvc.mapper.SubServiceMapper;
+import ir.ariana.home_service_mvc.model.Customer;
 import ir.ariana.home_service_mvc.model.MainService;
 import ir.ariana.home_service_mvc.model.Specialist;
 import ir.ariana.home_service_mvc.model.SubService;
 import ir.ariana.home_service_mvc.service.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,6 +24,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
+@Validated
 public class AdminController {
     private final AdminService adminService;
     private final MainServiceService mainServiceService;
@@ -48,6 +54,7 @@ public class AdminController {
                 HttpStatus.FOUND);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("enter_subService")
     public ResponseEntity<SubServiceReturn> enterSubService(@Validated @RequestBody SubServiceSaveRequest newSubService) {
         SubService mappedSubService = SubServiceMapper.INSTANCE.subServiceSaveRequestToModel(newSubService);
@@ -56,6 +63,8 @@ public class AdminController {
                 HttpStatus.CREATED);
     }
 
+
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("findBy_SubServiceId")
     public ResponseEntity<SubServiceReturn> findBySubServiceId(@RequestParam Long id) {
         SubService subService = subServiceService.findById(id);
@@ -63,6 +72,7 @@ public class AdminController {
                 HttpStatus.FOUND);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("update_SubService_Price")
     public ResponseEntity<SubServiceReturn> updateSubServicePrice(@RequestParam Long id, Long newPrice) {
         SubService subService = subServiceService.updateSubServicePrice(newPrice, id);
@@ -70,6 +80,7 @@ public class AdminController {
                 HttpStatus.OK);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("update_SubService_Description")
     public ResponseEntity<SubServiceReturn> updateSubServiceDescription(@RequestParam Long id, String newDescription) {
         SubService subService = subServiceService.updateSubServiceDescription(newDescription, id);
@@ -84,6 +95,7 @@ public class AdminController {
         return SubServiceMapper.INSTANCE.listSubServiceToSaveResponse(subServices);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("make_Specialist_Accepted")
     public ResponseEntity<SpecialistReturn> makeSpecialistAccepted(@RequestParam Long id, SpecialistStatus specialistStatus) {
         Specialist specialist = specialistService.findById(id);
@@ -92,6 +104,7 @@ public class AdminController {
                 HttpStatus.OK);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("add_Specialist_ToSubService")
     public ResponseEntity<SpecialistReturn> addSpecialistToSubService(@RequestParam Long specialistId, Long subServiceId) {
         Specialist specialist = specialistService.findById(specialistId);
@@ -100,6 +113,7 @@ public class AdminController {
                 HttpStatus.OK);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("remove_Specialist_SubService")
     public ResponseEntity<SpecialistReturn> removeSpecialistSubService(@RequestParam Long id, Long subServiceId) {
         Specialist specialist = specialistService.findById(id);
@@ -108,9 +122,17 @@ public class AdminController {
                 HttpStatus.OK);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("delete_mainService")
     public String removeMainService(@RequestParam Long id) {
         mainServiceService.removeMainService(id);
         return "mainService and All relations have been deleted";
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("delete_subService")
+    public String removeSubService(@RequestParam Long id) {
+        subServiceService.removeSubService(id);
+        return "subService and All relations have been deleted";
     }
 }
