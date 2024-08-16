@@ -1,6 +1,8 @@
-package ir.ariana.home_service_mvc.dto;
+package ir.ariana.home_service_mvc.dto.subService;
 
-public record SubServiceReturn(Integer id,
+import ir.ariana.home_service_mvc.dto.mainService.MainServiceReturn;
+
+public record SubServiceReturn(Long id,
                                String name,
                                Long basePrice,
                                String description,
