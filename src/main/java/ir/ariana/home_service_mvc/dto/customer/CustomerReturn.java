@@ -1,6 +1,6 @@
-package ir.ariana.home_service_mvc.dto;
+package ir.ariana.home_service_mvc.dto.customer;
 
-public record CustomerReturn(Integer id,
+public record CustomerReturn(Long id,
                              String firstName,
                              String lastName,
                              String email,

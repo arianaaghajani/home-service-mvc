@@ -1,4 +1,4 @@
-package ir.ariana.home_service_mvc.dto;
+package ir.ariana.home_service_mvc.dto.customer;
 
 public record CustomerSaveRequest(String firstName,
                                   String lastName,
