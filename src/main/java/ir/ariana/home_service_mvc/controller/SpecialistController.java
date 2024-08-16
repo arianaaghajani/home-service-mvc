@@ -1,17 +1,16 @@
 package ir.ariana.home_service_mvc.controller;
 
-import ir.ariana.home_service_mvc.dto.OfferReturn;
-import ir.ariana.home_service_mvc.dto.OfferSaveRequest;
-import ir.ariana.home_service_mvc.dto.SpecialistReturn;
-import ir.ariana.home_service_mvc.dto.SpecialistSaveRequest;
+import ir.ariana.home_service_mvc.dto.offer.OfferReturn;
+import ir.ariana.home_service_mvc.dto.offer.OfferSave;
+import ir.ariana.home_service_mvc.dto.specialist.SpecialistReturn;
+import ir.ariana.home_service_mvc.dto.specialist.SpecialistSaveRequest;
 import ir.ariana.home_service_mvc.enums.OfferStatus;
 import ir.ariana.home_service_mvc.enums.SpecialistStatus;
 import ir.ariana.home_service_mvc.mapper.OfferMapper;
 import ir.ariana.home_service_mvc.mapper.SpecialistMapper;
-import ir.ariana.home_service_mvc.model.Offer;
-import ir.ariana.home_service_mvc.model.Order;
-import ir.ariana.home_service_mvc.model.Specialist;
-import ir.ariana.home_service_mvc.model.SubService;
+import ir.ariana.home_service_mvc.model.*;
+import ir.ariana.home_service_mvc.repository.OfferRepository;
+import ir.ariana.home_service_mvc.repository.SpecialistRepository;
 import ir.ariana.home_service_mvc.service.*;
 import ir.ariana.home_service_mvc.validation.TakeAndCheckImage;
 import jakarta.validation.Valid;
@@ -21,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @RestController
@@ -28,14 +28,13 @@ public class SpecialistController {
 
     private final SpecialistService specialistService;
     private final TakeAndCheckImage takeAndCheckImage;
-    private final SubServiceService subServiceService;
     private final OfferService offerService;
     private final OrderService orderService;
     private final CommentService commentService;
-
+    private final SubServiceService subServiceService;
 
     @PostMapping("register_specialist")
-    public ResponseEntity<SpecialistReturn> registerSpecialist(@Valid @RequestBody SpecialistSaveRequest specialistSaveRequest) {
+    public ResponseEntity<SpecialistReturn> registerSpecialist(@RequestBody SpecialistSaveRequest specialistSaveRequest) {
         byte[] image = takeAndCheckImage.specialistImage(specialistSaveRequest.imagePath());
         Specialist mappedSpecialist = SpecialistMapper.INSTANCE.specialistSaveRequestToModel(specialistSaveRequest);
         mappedSpecialist.setImage(image);
@@ -68,13 +67,15 @@ public class SpecialistController {
     @GetMapping("save_Specialist_Image")
     public void saveSpecialistImage(@RequestParam Long id) {
         Specialist specialist = specialistService.findById(id);
-        takeAndCheckImage.saveSpecialistImageToHDD(specialist.getImage(), specialist.getFirstName(),specialist.getLastName());
+        takeAndCheckImage.saveSpecialistImageToHDD(specialist.getImage(), specialist.getFirstName(), specialist.getLastName());
     }
 
     @GetMapping("update_Specialist_Password")
-    public String updateSpecialistPassword(@RequestParam Long id, String oldPassword, String newPassword, String confirmPassword) {
+    public String updateSpecialistPassword(@RequestParam Long id, String oldPassword, String newPassword,
+                                           String confirmPassword) {
         Specialist specialist = specialistService.findById(id);
-        Specialist updatedSpecialist= specialistService.UpdatePassword(oldPassword, newPassword, confirmPassword, specialist);
+        Specialist updatedSpecialist = specialistService.UpdatePassword(oldPassword, newPassword, confirmPassword
+                , specialist);
         return updatedSpecialist.getPassword();
     }
 
@@ -84,12 +85,17 @@ public class SpecialistController {
         return "specialist and All relations have been deleted";
     }
 
+
     @PostMapping("save_Offer")
-    public ResponseEntity<OfferReturn> saveOffer(@Valid @RequestBody OfferSaveRequest offerSaveRequest) {
-        Offer mappedOffer = OfferMapper.INSTANCE.offerSaveRequestToModel(offerSaveRequest);
-        Order order = orderService.findById(offerSaveRequest.order().getId());
+    public ResponseEntity<OfferReturn> saveOffer(@Valid @RequestBody OfferSave offerSave) {
+        Offer mappedOffer = OfferMapper.INSTANCE.offerSaveToModel(offerSave);
+        Order order = orderService.findById(offerSave.orderId());
+        mappedOffer.setOrder(order);
+        Specialist specialist = specialistService.findById(offerSave.specialistId());
+        mappedOffer.setSpecialist(specialist);
         SubService subService = subServiceService.findById(order.getSubService().getId());
-        Offer savedOffer = offerService.saveOffer(mappedOffer, subService, order);
+        order.setSubService(subService);
+        Offer savedOffer = offerService.save(mappedOffer,subService,order);
         orderService.makeOrderStatusWaitForAccept(order);
         return new ResponseEntity<>(OfferMapper.INSTANCE.modelOfferToSaveResponse(savedOffer),
                 HttpStatus.CREATED);

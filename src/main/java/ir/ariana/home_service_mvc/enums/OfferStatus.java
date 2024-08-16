@@ -4,6 +4,7 @@ public enum OfferStatus {
     WAITING,
     ACCEPTED,
     REJECTED,
+    ON_GOING,
     DONE
 
 }

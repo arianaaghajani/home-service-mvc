@@ -18,7 +18,7 @@
             <h3>Payment Details</h3>
         </header>
 
-        <form method="post" id="balance" th:action="@{/customer/send-payment-info}" th:object="${dto}">
+        <form method="post" id="balance" th:action="@{/customer/send-bankAccount-info}" th:object="${dto}">
             <div>
                 must be paid : <span th:text="${dto.price}">$ </span>
             </div>
@@ -95,7 +95,7 @@
             formData.append("number", form.number.value)
 
 
-            fetch('/customer/send-payment-info', {
+            fetch('/customer/send-bankAccount-info', {
                 method: 'POST',
                 body: formData
             })
@@ -105,7 +105,7 @@
                 .then(function (jsonObj) {
                     alert(jsonObj.message)
                     if (jsonObj.code === "200") {
-                        window.location.replace("/success-payment.html")
+                        window.location.replace("/success-bankAccount.html")
                     }
                 })
         });

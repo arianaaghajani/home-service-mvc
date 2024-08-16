@@ -1,6 +1,14 @@
 package ir.ariana.home_service_mvc.controller;
 
-import ir.ariana.home_service_mvc.dto.*;
+import ir.ariana.home_service_mvc.dto.PaymentDto;
+import ir.ariana.home_service_mvc.dto.comment.CommentReturn;
+import ir.ariana.home_service_mvc.dto.comment.CommentSaveRequest;
+import ir.ariana.home_service_mvc.dto.customer.CustomerReturn;
+import ir.ariana.home_service_mvc.dto.customer.CustomerSaveRequest;
+import ir.ariana.home_service_mvc.dto.offer.OfferReturn;
+import ir.ariana.home_service_mvc.dto.order.OrderReturn;
+import ir.ariana.home_service_mvc.dto.order.OrderSaveRequest;
+import ir.ariana.home_service_mvc.dto.payment.PaymentRequest;
 import ir.ariana.home_service_mvc.enums.OfferStatus;
 import ir.ariana.home_service_mvc.enums.OrderStatus;
 import ir.ariana.home_service_mvc.mapper.CommentMapper;
@@ -9,11 +17,16 @@ import ir.ariana.home_service_mvc.mapper.OfferMapper;
 import ir.ariana.home_service_mvc.mapper.OrderMapper;
 import ir.ariana.home_service_mvc.model.*;
 import ir.ariana.home_service_mvc.service.*;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
+import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.neo4j.Neo4jProperties;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,12 +37,14 @@ import java.util.List;
 @Validated
 @RequiredArgsConstructor
 public class CustomerController {
+    @Autowired
+
     private final CustomerService customerService;
     private final OrderService orderService;
     private final SubServiceService subServiceService;
     private final OfferService offerService;
-    private final CommentService commentsService;
     private final CommentService commentService;
+    private final BankAccountService bankAccountService;
 
 
     @PostMapping("registerCustomer")
@@ -79,7 +94,7 @@ public class CustomerController {
     public ResponseEntity<OrderReturn> makeOrder(@Valid @RequestBody OrderSaveRequest orderSaveRequest) {
         Order mappedOrder = OrderMapper.INSTANCE.orderSaveRequestToModel(orderSaveRequest);
         Order savedOrder = orderService.addOrderByCustomer(mappedOrder, orderSaveRequest.subServiceId(),
-                orderSaveRequest.customerId());
+                orderSaveRequest.customerId(),orderSaveRequest.specialistId());
         return new ResponseEntity<>(OrderMapper.INSTANCE.modelOrderToSaveResponse(savedOrder), HttpStatus.CREATED);
     }
 
@@ -101,7 +116,7 @@ public class CustomerController {
     @GetMapping("findBy_SubServiceOrders")
     public List<OrderReturn> findBySubServiceOrders(@RequestParam Long id) {
         SubService subService = subServiceService.findById(id);
-        List<Order> orders = orderService.findSubServiceOrders(subService);
+        List<Order> orders = orderService.findSubServiceOrder(subService);
         return OrderMapper.INSTANCE.listOrderToSaveResponse(orders);
     }
 
@@ -132,21 +147,23 @@ public class CustomerController {
         Order order = orderService.findById(orderId);
         Offer offer = offerService.findById(offerId);
         offerService.updateOfferStatus(OfferStatus.ACCEPTED, offer);
-        Order acceptedOrder = orderService.updateOrderStatus(OrderStatus.WAITING_FOR_SPECIALIST_SELECTION, order);
+        Order acceptedOrder = orderService.updateOrderStatus(OrderStatus.WAITING_FOR_SPECIALIST_TO_COME, order);
         return OrderMapper.INSTANCE.modelOrderToSaveResponse(acceptedOrder);
     }
 
-    @PatchMapping("make_Order_ToCome")
-    public OrderReturn makeOrderToCome(@RequestParam Long id) {
+    @PatchMapping("make_Order_ToStart")
+    public OrderReturn makeOrderToStart(@RequestParam Long id) {
         Order order = orderService.findById(id);
-        Order orderToCome = orderService.makeOrderToCome(order);
-        return OrderMapper.INSTANCE.modelOrderToSaveResponse(orderToCome);
+        Order toCome = orderService.makeOrderToStart(order);
+        return OrderMapper.INSTANCE.modelOrderToSaveResponse(toCome);
     }
 
-    @GetMapping("make_Order_Done")
+
+    @PatchMapping("make_Order_Done")
     public OrderReturn makeOrderDone(@RequestParam Long id) {
         Order order = orderService.findById(id);
-        Order doneOrder = orderService.makeOrderDone(order);
+        Order doneOrder = orderService.changeOrderStatusToDone(order);
+        orderService.updateOrderStatus(OrderStatus.DONE, doneOrder);
         return OrderMapper.INSTANCE.modelOrderToSaveResponse(doneOrder);
     }
 
@@ -154,7 +171,7 @@ public class CustomerController {
     public ResponseEntity<CommentReturn> saveComment(@Valid @RequestBody CommentSaveRequest commentSaveRequest) {
         Comment mappedComment = CommentMapper.INSTANCE.INSTANCE.commentSaveRequestToModel(commentSaveRequest);
         Comment savedComment = commentService.saveComment(mappedComment);
-        commentsService.addScoreToSpecialist(savedComment);
+        commentService.addScoreToSpecialist(savedComment);
         return new ResponseEntity<>(CommentMapper.INSTANCE.modelCommentToSaveResponse(savedComment),
                 HttpStatus.CREATED);
     }
@@ -162,7 +179,7 @@ public class CustomerController {
     @GetMapping("/show-my-credit")
     public Long showCustomerCredit(@RequestParam Long id) {
         Customer customer = customerService.findById(id);
-        return customer.getCredit();
+        return (long) customer.getCredit();
     }
 
     @GetMapping("add_credit")
@@ -173,13 +190,18 @@ public class CustomerController {
                 HttpStatus.OK);
     }
 
-    @PatchMapping("payBy_credit")
-    @PreAuthorize("hasRole('ROLE_CUSTOMER')")
-    public ResponseEntity<CustomerReturn> payByCredit(@RequestParam Long id) {
-        Order order = orderService.findById(id);
-        Customer customer = customerService.payOrderPriceFromCredit(order);
-        return new ResponseEntity<>(CustomerMapper.INSTANCE.modelCustomerToSaveResponse(customer),
-                HttpStatus.OK);
+
+    @PostMapping("payBy_Credit")
+    public String paymentWithCardBalance(@RequestBody PaymentRequest request){
+        orderService.orderPaymentWithCredit(request.id());
+        return "paid order";
+    }
+
+
+    @PostMapping("/payment")
+    public ResponseEntity<String> processPayment(@RequestBody BankAccount bankAccount) {
+        bankAccountService.save(bankAccount);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
 

@@ -1,12 +1,14 @@
 package ir.ariana.home_service_mvc.service;
 
 import ir.ariana.home_service_mvc.enums.SpecialistStatus;
-import ir.ariana.home_service_mvc.exception.DuplicateInformationException;
-import ir.ariana.home_service_mvc.exception.InvalidInputInformationException;
-import ir.ariana.home_service_mvc.exception.NotFoundException;
-import ir.ariana.home_service_mvc.exception.NotMatchPasswordException;
+import ir.ariana.home_service_mvc.exception.*;
 import ir.ariana.home_service_mvc.model.Specialist;
 import ir.ariana.home_service_mvc.repository.SpecialistRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import jakarta.transaction.Transactional;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
@@ -27,11 +29,14 @@ public class SpecialistService {
     private final SpecialistRepository specialistRepository;
     ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory();
     Validator validator = validatorFactory.getValidator();
+    private final EntityManager entityManager;
 
-    public void validate(Specialist specialist) {
+
+    public boolean validate(Specialist specialist) {
         Set<ConstraintViolation<Specialist>> violations = validator.validate(specialist);
         if (violations.isEmpty()) {
-            specialistRepository.save(specialist);
+            Specialist save = specialistRepository.save(specialist);
+            specialist.setId(save.getId());
             log.info("specialist saved");
         } else {
             System.out.println("Invalid user data found:");
@@ -40,6 +45,16 @@ public class SpecialistService {
             }
             throw new InvalidInputInformationException("some of inputs are not valid");
         }
+        return false;
+    }
+
+    public Specialist updateSpecialist(Specialist specialist) {
+        findById(specialist.getId());
+//        if (!validate(specialist)) {
+//            throw new InvalidEntityException(String.format("the expert with %s have invalid variable",
+//                    specialist.getPassword()));
+//        }
+        return specialistRepository.save(specialist);
     }
 
 
@@ -49,8 +64,9 @@ public class SpecialistService {
             log.error("duplicate email can not insert");
             throw new DuplicateInformationException("duplicate email can not insert");
         } else
-            validate(specialist);
-        return specialist;
+//            validate(specialist);
+//        return specialist;
+            return specialistRepository.save(specialist);
     }
 
     @Transactional
@@ -66,7 +82,7 @@ public class SpecialistService {
 
 
     public Specialist UpdatePassword(String oldPassword, String newPassword, String confirmPassword,
-                                 Specialist specialist) {
+                                     Specialist specialist) {
         if (!specialist.getPassword().equals(oldPassword))
             throw new NotMatchPasswordException("wrong password entered");
         if (!newPassword.equals(confirmPassword))
@@ -75,12 +91,11 @@ public class SpecialistService {
         return specialistRepository.save(specialist);
     }
 
-    public void updateSpecialistStatus(SpecialistStatus specialistStatus, Specialist specialist) {
+    public Specialist updateSpecialistStatus(SpecialistStatus specialistStatus, Specialist specialist) {
         specialist.setSpecialistStatus(specialistStatus);
         validate(specialist);
+        return specialist;
     }
-
-
 
     @Transactional
     public List<Specialist> findBySpecialistStatus(SpecialistStatus specialistStatus) {
@@ -92,12 +107,12 @@ public class SpecialistService {
     }
 
     public boolean access(Specialist specialist) {
-        SpecialistStatus specialistStatus  = specialist.getSpecialistStatus();
-        return specialistStatus ==SpecialistStatus.CONFIRMED;
+        SpecialistStatus specialistStatus = specialist.getSpecialistStatus();
+        return specialistStatus == SpecialistStatus.CONFIRMED;
     }
 
     public void removeSpecialist(Long id) {
-        Specialist specialist= findById(id);
+        Specialist specialist = findById(id);
         specialistRepository.delete(specialist);
     }
 
@@ -113,9 +128,18 @@ public class SpecialistService {
     public void blockSpecialist(Specialist specialist) {
         double score = specialist.getScore();
         if (score < 0)
-            updateSpecialistStatus(SpecialistStatus.BLOCKED,specialist);
+            updateSpecialistStatus(SpecialistStatus.BLOCKED, specialist);
 
     }
 
+    public List<Specialist> filterSpecialist(String column, String value) {
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Specialist> query = criteriaBuilder.createQuery(Specialist.class);
+        Root<Specialist> clientRoot = query.from(Specialist.class);
 
+        Predicate columnFilter = criteriaBuilder.equal(clientRoot.get(column), value);
+        query.where(criteriaBuilder.and(columnFilter));
+
+        return entityManager.createQuery(query).getResultList();
+    }
 }
