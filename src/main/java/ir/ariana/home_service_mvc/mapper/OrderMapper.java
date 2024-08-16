@@ -1,7 +1,7 @@
 package ir.ariana.home_service_mvc.mapper;
 
-import ir.ariana.home_service_mvc.dto.OrderReturn;
-import ir.ariana.home_service_mvc.dto.OrderSaveRequest;
+import ir.ariana.home_service_mvc.dto.order.OrderReturn;
+import ir.ariana.home_service_mvc.dto.order.OrderSaveRequest;
 import ir.ariana.home_service_mvc.model.Order;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
@@ -19,5 +19,7 @@ public interface OrderMapper {
 
     OrderReturn modelOrderToSaveResponse(Order order);
 
+
     List<OrderReturn> listOrderToSaveResponse(List<Order> orders);
+
 }

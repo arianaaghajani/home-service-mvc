@@ -1,12 +1,12 @@
 package ir.ariana.home_service_mvc.mapper;
 
-import ir.ariana.home_service_mvc.dto.CommentReturn;
-import ir.ariana.home_service_mvc.dto.CommentSaveRequest;
+import ir.ariana.home_service_mvc.dto.comment.CommentReturn;
+import ir.ariana.home_service_mvc.dto.comment.CommentSaveRequest;
 import ir.ariana.home_service_mvc.model.Comment;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = OrderMapper.class)
+@Mapper
 public interface CommentMapper {
 
     CommentMapper INSTANCE = Mappers.getMapper(CommentMapper.class);
@@ -14,4 +14,5 @@ public interface CommentMapper {
     Comment commentSaveRequestToModel(CommentSaveRequest request);
 
     CommentReturn modelCommentToSaveResponse(Comment comment);
+
 }

@@ -1,34 +1,13 @@
 package ir.ariana.home_service_mvc.mapper;
 
-import ir.ariana.home_service_mvc.dto.AddressDTO;
+import ir.ariana.home_service_mvc.dto.address.AddressDTO;
 import ir.ariana.home_service_mvc.model.Address;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
+import org.mapstruct.factory.Mappers;
 
-@Component
-@RequiredArgsConstructor
-public class AddressMapper {
+public interface AddressMapper {
+    AddressMapper INSTANCE = Mappers.getMapper(AddressMapper.class);
+    Address addressSaveRequestToModel(AddressDTO addressDTO);
+    AddressDTO modelAddressToSaveResponse(Address address);
 
-    public Address convertToAddress(AddressDTO dto) {
-        return new Address(
-                dto.getProvince(),
-                dto.getCity(),
-                dto.getAvenue(),
-                dto.getPostalCode(),
-                dto.getHouseNumber(),
-                dto.getMoreDescription()
-        );
-    }
-
-    public AddressDTO convertToDTO(Address address) {
-        return new AddressDTO(
-                address.getProvince(),
-                address.getCity(),
-                address.getAvenue(),
-                address.getPostalCard(),
-                address.getHouseNumber(),
-                address.getMoreDescription()
-        );
-    }
 
 }

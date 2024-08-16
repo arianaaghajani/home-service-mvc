@@ -1,7 +1,7 @@
 package ir.ariana.home_service_mvc.mapper;
 
-import ir.ariana.home_service_mvc.dto.SubServiceReturn;
-import ir.ariana.home_service_mvc.dto.SubServiceSaveRequest;
+import ir.ariana.home_service_mvc.dto.subService.SubServiceReturn;
+import ir.ariana.home_service_mvc.dto.subService.SubServiceSaveRequest;
 import ir.ariana.home_service_mvc.model.SubService;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
@@ -18,5 +18,5 @@ public interface SubServiceMapper {
 
     SubServiceReturn modelSubServiceToSaveResponse(SubService subService);
 
-    List<SubServiceReturn> listSubDutyToSaveResponse(List<SubService> subServices);
+    List<SubServiceReturn> listSubServiceToSaveResponse(List<SubService> subServices);
 }

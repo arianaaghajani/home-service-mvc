@@ -1,7 +1,8 @@
 package ir.ariana.home_service_mvc.mapper;
 
-import ir.ariana.home_service_mvc.dto.CustomerReturn;
-import ir.ariana.home_service_mvc.dto.CustomerSaveRequest;
+import ir.ariana.home_service_mvc.dto.customer.CustomerReturn;
+import ir.ariana.home_service_mvc.dto.customer.CustomerSaveRequest;
+import ir.ariana.home_service_mvc.dto.customer.CustomerSaveResponse;
 import ir.ariana.home_service_mvc.model.Customer;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
@@ -17,6 +18,9 @@ public interface CustomerMapper {
     Customer customerSaveRequestToModel(CustomerSaveRequest customerSaveRequest);
 
     CustomerReturn modelCustomerToSaveResponse(Customer customer);
-
+    CustomerSaveResponse modelToCustomerSaveResponse(Customer customer);
     List<CustomerReturn> listCustomerToSaveResponse(List<Customer> customers);
+
+
+
 }
