@@ -1,4 +1,4 @@
-package ir.ariana.home_service_mvc.dto;
+package ir.ariana.home_service_mvc.dto.specialist;
 
 public record SpecialistReturn(Long id,
                                String firstName,
