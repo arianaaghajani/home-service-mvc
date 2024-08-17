@@ -1,6 +1,5 @@
 package ir.ariana.home_service_mvc.controller;
 
-import ir.ariana.home_service_mvc.dto.PaymentDto;
 import ir.ariana.home_service_mvc.dto.comment.CommentReturn;
 import ir.ariana.home_service_mvc.dto.comment.CommentSaveRequest;
 import ir.ariana.home_service_mvc.dto.customer.CustomerReturn;
@@ -8,7 +7,6 @@ import ir.ariana.home_service_mvc.dto.customer.CustomerSaveRequest;
 import ir.ariana.home_service_mvc.dto.offer.OfferReturn;
 import ir.ariana.home_service_mvc.dto.order.OrderReturn;
 import ir.ariana.home_service_mvc.dto.order.OrderSaveRequest;
-import ir.ariana.home_service_mvc.dto.payment.PaymentRequest;
 import ir.ariana.home_service_mvc.enums.OfferStatus;
 import ir.ariana.home_service_mvc.enums.OrderStatus;
 import ir.ariana.home_service_mvc.mapper.CommentMapper;
@@ -17,16 +15,11 @@ import ir.ariana.home_service_mvc.mapper.OfferMapper;
 import ir.ariana.home_service_mvc.mapper.OrderMapper;
 import ir.ariana.home_service_mvc.model.*;
 import ir.ariana.home_service_mvc.service.*;
-import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
-import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.neo4j.Neo4jProperties;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -168,12 +161,14 @@ public class CustomerController {
     }
 
     @PostMapping("save_Comment")
-    public ResponseEntity<CommentReturn> saveComment(@Valid @RequestBody CommentSaveRequest commentSaveRequest) {
-        Comment mappedComment = CommentMapper.INSTANCE.INSTANCE.commentSaveRequestToModel(commentSaveRequest);
-        Comment savedComment = commentService.saveComment(mappedComment);
-        commentService.addScoreToSpecialist(savedComment);
+    public ResponseEntity<CommentReturn> saveComment(@RequestBody CommentSaveRequest commentSaveRequest) {
+        Comment mappedComment = CommentMapper.INSTANCE.commentSaveRequestToModel(commentSaveRequest);
+        Order order = orderService.findById(commentSaveRequest.orderId());
+        mappedComment.setOrder(order);
+        Comment savedComment = commentService.SaveScore(mappedComment,order);
         return new ResponseEntity<>(CommentMapper.INSTANCE.modelCommentToSaveResponse(savedComment),
                 HttpStatus.CREATED);
+
     }
 
     @GetMapping("/show-my-credit")
@@ -192,9 +187,8 @@ public class CustomerController {
 
 
     @PostMapping("payBy_Credit")
-    public String paymentWithCardBalance(@RequestBody PaymentRequest request){
-        orderService.orderPaymentWithCredit(request.id());
-        return "paid order";
+    public void payCredit(Long id) {
+        orderService.orderPaymentWithCredit(id);
     }
 
 
@@ -203,6 +197,4 @@ public class CustomerController {
         bankAccountService.save(bankAccount);
         return new ResponseEntity<>(HttpStatus.OK);
     }
-
-
 }
