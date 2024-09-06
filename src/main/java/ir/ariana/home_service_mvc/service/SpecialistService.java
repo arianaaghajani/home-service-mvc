@@ -1,9 +1,11 @@
 package ir.ariana.home_service_mvc.service;
 
+import ir.ariana.home_service_mvc.dto.specialist.SpecialistCriteriaDTO;
 import ir.ariana.home_service_mvc.enums.SpecialistStatus;
 import ir.ariana.home_service_mvc.exception.*;
 import ir.ariana.home_service_mvc.model.Specialist;
 import ir.ariana.home_service_mvc.repository.SpecialistRepository;
+import ir.ariana.home_service_mvc.specification.SpecialistSpecifications;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -16,6 +18,7 @@ import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -132,14 +135,9 @@ public class SpecialistService {
 
     }
 
-    public List<Specialist> filterSpecialist(String column, String value) {
-        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
-        CriteriaQuery<Specialist> query = criteriaBuilder.createQuery(Specialist.class);
-        Root<Specialist> clientRoot = query.from(Specialist.class);
-
-        Predicate columnFilter = criteriaBuilder.equal(clientRoot.get(column), value);
-        query.where(criteriaBuilder.and(columnFilter));
-
-        return entityManager.createQuery(query).getResultList();
+    public List<Specialist> specialistSearch(SpecialistCriteriaDTO specialistCriteriaDTO) {
+        Specification<Specialist> specification = SpecialistSpecifications.getSpecialistSpecification(specialistCriteriaDTO);
+        return specialistRepository.findAll(specification);
     }
+
 }

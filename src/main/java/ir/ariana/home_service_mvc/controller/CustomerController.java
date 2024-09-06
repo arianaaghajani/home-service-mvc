@@ -23,6 +23,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.Collections;
 import java.util.List;
 
@@ -186,7 +187,7 @@ public class CustomerController {
     }
 
 
-    @PostMapping("payBy_Credit")
+    @PatchMapping("payBy_Credit")
     public void payCredit(Long id) {
         orderService.orderPaymentWithCredit(id);
     }
@@ -197,4 +198,5 @@ public class CustomerController {
         bankAccountService.save(bankAccount);
         return new ResponseEntity<>(HttpStatus.OK);
     }
+
 }

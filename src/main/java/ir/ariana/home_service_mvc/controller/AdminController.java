@@ -1,10 +1,10 @@
 package ir.ariana.home_service_mvc.controller;
 
-import com.google.common.base.Joiner;
-import ir.ariana.home_service_mvc.criteria.SearchOperation;
-import ir.ariana.home_service_mvc.dto.customer.CustomerReturn;
+import ir.ariana.home_service_mvc.dto.customer.CustomerCriteriaDto;
+import ir.ariana.home_service_mvc.dto.customer.CustomerSaveResponse;
 import ir.ariana.home_service_mvc.dto.mainService.MainServiceReturn;
 import ir.ariana.home_service_mvc.dto.mainService.MainServiceSaveRequest;
+import ir.ariana.home_service_mvc.dto.specialist.SpecialistCriteriaDTO;
 import ir.ariana.home_service_mvc.dto.specialist.SpecialistReturn;
 import ir.ariana.home_service_mvc.dto.subService.SubServiceReturn;
 import ir.ariana.home_service_mvc.dto.subService.SubServiceSaveRequest;
@@ -12,17 +12,14 @@ import ir.ariana.home_service_mvc.enums.SpecialistStatus;
 import ir.ariana.home_service_mvc.mapper.*;
 import ir.ariana.home_service_mvc.model.*;
 import ir.ariana.home_service_mvc.service.*;
-import ir.ariana.home_service_mvc.specification.CustomerSpecificationsBuilder;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
@@ -142,23 +139,18 @@ public class AdminController {
     }
 
 
+    @GetMapping("search-customer")
+    public List<CustomerSaveResponse> searchCustomer(@RequestBody CustomerCriteriaDto customerCriteriaDto){
+        List<Customer> customers =customerService.customerSearch(customerCriteriaDto);
+        return customers.stream()
+                .map(CustomerMapper.INSTANCE::modelToCustomerSaveResponse).collect(Collectors.toList());
+    }
 
-    @GetMapping("customer_Search")
-    @ResponseBody
-    public List<CustomerReturn> customerSearch(@RequestParam String search) {
-        CustomerSpecificationsBuilder builder = new CustomerSpecificationsBuilder();
-        String operationSet = Joiner.on("|").join(SearchOperation.SIMPLE_OPERATION_SET);
-        Pattern pattern = Pattern.compile("(\\w+?)(" + operationSet + ")(\\p{Punct}?)(\\w+?)(\\p{Punct}?),");
-        Matcher matcher = pattern.matcher(search + ",");
-        while (matcher.find()) {
-            builder.with(
-                    matcher.group(1),
-                    matcher.group(2),
-                    matcher.group(4),
-                    matcher.group(3),
-                    matcher.group(5));
-        }
-        Specification<Customer> spec = builder.build();
-        return CustomerMapper.INSTANCE.listCustomerToSaveResponse(customerService.findAll(spec));
+
+    @GetMapping("search-specialist")
+    public List<SpecialistReturn> searchSpecialist(@RequestBody SpecialistCriteriaDTO specialistCriteriaDto){
+        List<Specialist> specialists =specialistService.specialistSearch(specialistCriteriaDto);
+        return specialists.stream()
+                .map(SpecialistMapper.INSTANCE::modelSpecialistToSaveResponse).collect(Collectors.toList());
     }
 }
